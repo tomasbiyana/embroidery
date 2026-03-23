@@ -3,12 +3,11 @@ export interface User {
   id: string;
   email: string;
   username: string;
-  role: 'writer' | 'reader';
+  role: 'reader' | 'writer';
   createdAt: string;
-  securityQuestion: string;
-  securityAnswer: string;
   bio?: string;
-  avatar?: string;
+  securityQuestion?: string;
+  securityAnswer?: string;
 }
 
 export interface AuthState {

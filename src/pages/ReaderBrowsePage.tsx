@@ -23,6 +23,7 @@ export function ReaderBrowsePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('All');
   const [subscriptions, setSubscriptions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
 useEffect(() => {
   if (user) {

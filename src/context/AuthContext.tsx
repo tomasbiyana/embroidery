@@ -32,16 +32,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return data as User;
   };
 
-  useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const profile = await fetchUserProfile(session.user.id);
-        setUser(profile || null);
-      }
-      setLoading(false);
-    });
+useEffect(() => {
+  supabase.auth.getSession().then(async ({ data: { session } }: { data: { session: any } }) => {
+    if (session?.user) {
+      const profile = await fetchUserProfile(session.user.id);
+      setUser(profile || null);
+    }
+    setLoading(false);
+  });
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+  const { data: listener } = supabase.auth.onAuthStateChange(
+    async (_event: any, session: any) => {
       if (session?.user) {
         const profile = await fetchUserProfile(session.user.id);
         setUser(profile || null);
@@ -49,12 +50,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
       }
       setLoading(false);
-    });
+    }
+  );
 
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, []);
+  return () => {
+    listener?.subscription.unsubscribe();
+  };
+}, []);
 
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -103,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updatePassword = async (email: string, newPassword: string) => {
+  const updatePassword = async (email: string, _newPassword: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email);
     if (error) {
       toast.error(error.message);

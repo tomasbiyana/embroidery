@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { Book, Chapter, Subscription, User } from '@/types';
+import type { Book, Chapter, Subscription, User } from '@/types';
 
 // Helper to convert snake_case to camelCase (if your types use camelCase)
 // Or you can store/use snake_case consistently.
