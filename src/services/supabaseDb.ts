@@ -1,15 +1,55 @@
 import { supabase } from '@/lib/supabase';
 import type { Book, Chapter, Subscription, User } from '@/types';
 
-// Helper to convert snake_case to camelCase (if your types use camelCase)
-// Or you can store/use snake_case consistently.
+// Helper to convert snake_case to camelCase
+const mapBook = (book: any): Book => ({
+  id: book.id,
+  title: book.title,
+  authorId: book.author_id,
+  authorName: book.author_name,
+  description: book.description,
+  type: book.type,
+  genre: book.genre,
+  createdAt: book.created_at,
+  updatedAt: book.updated_at,
+  isPublished: book.is_published,
+  subscriberCount: book.subscriber_count,
+});
+
+const mapChapter = (chapter: any): Chapter => ({
+  id: chapter.id,
+  bookId: chapter.book_id,
+  title: chapter.title,
+  content: chapter.content,
+  chapterNumber: chapter.chapter_number,
+  createdAt: chapter.created_at,
+  updatedAt: chapter.updated_at,
+  isPublished: chapter.is_published,
+  wordCount: chapter.word_count,
+});
+
+const mapSubscription = (sub: any): Subscription => ({
+  id: sub.id,
+  readerId: sub.reader_id,
+  writerId: sub.writer_id,
+  subscribedAt: sub.subscribed_at,
+});
+
+const mapUser = (user: any): User => ({
+  id: user.id,
+  email: user.email, // Not stored in public.users; you may want to fetch from auth.users separately
+  username: user.username,
+  role: user.role,
+  createdAt: user.created_at,
+  bio: user.bio,
+});
 
 export const supabaseDb = {
   // Users
   async getUsers(): Promise<User[]> {
     const { data, error } = await supabase.from('users').select('*');
     if (error) throw error;
-    return data as User[];
+    return data.map(mapUser);
   },
 
   async addUser(user: any) {
@@ -21,37 +61,25 @@ export const supabaseDb = {
   async getBooks(): Promise<Book[]> {
     const { data, error } = await supabase.from('books').select('*');
     if (error) throw error;
-    return data.map(book => ({
-      id: book.id,
-      title: book.title,
-      authorId: book.author_id,
-      authorName: book.author_name,
-      description: book.description,
-      type: book.type,
-      genre: book.genre,
-      createdAt: book.created_at,
-      updatedAt: book.updated_at,
-      isPublished: book.is_published,
-      subscriberCount: book.subscriber_count,
-    }));
+    return data.map(mapBook);
   },
 
   async getBookById(id: string): Promise<Book | null> {
     const { data, error } = await supabase.from('books').select('*').eq('id', id).single();
     if (error) return null;
-    return { ...data, isPublished: data.is_published, subscriberCount: data.subscriber_count };
+    return mapBook(data);
   },
 
   async getBooksByAuthor(authorId: string): Promise<Book[]> {
     const { data, error } = await supabase.from('books').select('*').eq('author_id', authorId);
     if (error) throw error;
-    return data.map(book => ({ ...book, isPublished: book.is_published, subscriberCount: book.subscriber_count }));
+    return data.map(mapBook);
   },
 
   async getPublishedBooks(): Promise<Book[]> {
     const { data, error } = await supabase.from('books').select('*').eq('is_published', true);
     if (error) throw error;
-    return data.map(book => ({ ...book, isPublished: book.is_published, subscriberCount: book.subscriber_count }));
+    return data.map(mapBook);
   },
 
   async addBook(book: Book) {
@@ -72,22 +100,23 @@ export const supabaseDb = {
   },
 
   async updateBook(book: Book) {
-    const { error } = await supabase.from('books').update({
-      title: book.title,
-      description: book.description,
-      type: book.type,
-      genre: book.genre,
-      updated_at: new Date().toISOString(),
-      is_published: book.isPublished,
-      subscriber_count: book.subscriberCount,
-    }).eq('id', book.id);
+    const { error } = await supabase
+      .from('books')
+      .update({
+        title: book.title,
+        description: book.description,
+        type: book.type,
+        genre: book.genre,
+        updated_at: new Date().toISOString(),
+        is_published: book.isPublished,
+        subscriber_count: book.subscriberCount,
+      })
+      .eq('id', book.id);
     if (error) throw error;
   },
 
   async deleteBook(id: string) {
-    // Delete chapters first (due to foreign key cascade might handle, but we can do manually if needed)
-    const { error: chaptersError } = await supabase.from('chapters').delete().eq('book_id', id);
-    if (chaptersError) throw chaptersError;
+    // Chapters will cascade delete due to foreign key, but we can delete them explicitly if needed
     const { error } = await supabase.from('books').delete().eq('id', id);
     if (error) throw error;
   },
@@ -96,19 +125,23 @@ export const supabaseDb = {
   async getChapters(): Promise<Chapter[]> {
     const { data, error } = await supabase.from('chapters').select('*');
     if (error) throw error;
-    return data.map(ch => ({ ...ch, bookId: ch.book_id, chapterNumber: ch.chapter_number, isPublished: ch.is_published, wordCount: ch.word_count }));
+    return data.map(mapChapter);
   },
 
   async getChaptersByBook(bookId: string): Promise<Chapter[]> {
-    const { data, error } = await supabase.from('chapters').select('*').eq('book_id', bookId).order('chapter_number', { ascending: true });
+    const { data, error } = await supabase
+      .from('chapters')
+      .select('*')
+      .eq('book_id', bookId)
+      .order('chapter_number', { ascending: true });
     if (error) throw error;
-    return data.map(ch => ({ ...ch, bookId: ch.book_id, chapterNumber: ch.chapter_number, isPublished: ch.is_published, wordCount: ch.word_count }));
+    return data.map(mapChapter);
   },
 
   async getChapterById(id: string): Promise<Chapter | null> {
     const { data, error } = await supabase.from('chapters').select('*').eq('id', id).single();
     if (error) return null;
-    return { ...data, bookId: data.book_id, chapterNumber: data.chapter_number, isPublished: data.is_published, wordCount: data.word_count };
+    return mapChapter(data);
   },
 
   async addChapter(chapter: Chapter) {
@@ -127,13 +160,16 @@ export const supabaseDb = {
   },
 
   async updateChapter(chapter: Chapter) {
-    const { error } = await supabase.from('chapters').update({
-      title: chapter.title,
-      content: chapter.content,
-      is_published: chapter.isPublished,
-      word_count: chapter.wordCount,
-      updated_at: new Date().toISOString(),
-    }).eq('id', chapter.id);
+    const { error } = await supabase
+      .from('chapters')
+      .update({
+        title: chapter.title,
+        content: chapter.content,
+        is_published: chapter.isPublished,
+        word_count: chapter.wordCount,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', chapter.id);
     if (error) throw error;
   },
 
@@ -146,31 +182,42 @@ export const supabaseDb = {
   async getSubscriptions(): Promise<Subscription[]> {
     const { data, error } = await supabase.from('subscriptions').select('*');
     if (error) throw error;
-    return data.map(s => ({ id: s.id, readerId: s.reader_id, writerId: s.writer_id, subscribedAt: s.subscribed_at }));
+    return data.map(mapSubscription);
   },
 
   async getSubscriptionsByReader(readerId: string): Promise<Subscription[]> {
-    const { data, error } = await supabase.from('subscriptions').select('*').eq('reader_id', readerId);
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('reader_id', readerId);
     if (error) throw error;
-    return data.map(s => ({ id: s.id, readerId: s.reader_id, writerId: s.writer_id, subscribedAt: s.subscribed_at }));
+    return data.map(mapSubscription);
   },
 
   async getSubscriptionsByWriter(writerId: string): Promise<Subscription[]> {
-    const { data, error } = await supabase.from('subscriptions').select('*').eq('writer_id', writerId);
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('writer_id', writerId);
     if (error) throw error;
-    return data.map(s => ({ id: s.id, readerId: s.reader_id, writerId: s.writer_id, subscribedAt: s.subscribed_at }));
+    return data.map(mapSubscription);
   },
 
   async isSubscribed(readerId: string, writerId: string): Promise<boolean> {
-    const { data, error } = await supabase.from('subscriptions').select('id').eq('reader_id', readerId).eq('writer_id', writerId).maybeSingle();
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('id')
+      .eq('reader_id', readerId)
+      .eq('writer_id', writerId)
+      .maybeSingle();
     if (error) throw error;
     return !!data;
   },
 
   async subscribe(subscription: Subscription) {
-    // Check if already exists (could use conflict handling in SQL)
-    const existing = await this.isSubscribed(subscription.readerId, subscription.writerId);
-    if (existing) return;
+    const exists = await this.isSubscribed(subscription.readerId, subscription.writerId);
+    if (exists) return;
+
     const { error } = await supabase.from('subscriptions').insert({
       id: subscription.id,
       reader_id: subscription.readerId,
@@ -178,21 +225,33 @@ export const supabaseDb = {
       subscribed_at: subscription.subscribedAt,
     });
     if (error) throw error;
-    // Update subscriber count on all books of that writer (could be done with a trigger, but we'll do manually)
-    const { data: books } = await supabase.from('books').select('id').eq('author_id', subscription.writerId);
-    if (books && books.length) {
+
+    // Update subscriber count on all books of that writer
+    const { data: books } = await supabase
+      .from('books')
+      .select('id')
+      .eq('author_id', subscription.writerId);
+    if (books) {
       for (const book of books) {
-        await supabase.rpc('increment_subscriber_count', { book_id: book.id }); // create a PostgreSQL function
+        await supabase.rpc('increment_subscriber_count', { book_id: book.id });
       }
     }
   },
 
   async unsubscribe(readerId: string, writerId: string) {
-    const { error } = await supabase.from('subscriptions').delete().eq('reader_id', readerId).eq('writer_id', writerId);
+    const { error } = await supabase
+      .from('subscriptions')
+      .delete()
+      .eq('reader_id', readerId)
+      .eq('writer_id', writerId);
     if (error) throw error;
+
     // Decrement subscriber count
-    const { data: books } = await supabase.from('books').select('id').eq('author_id', writerId);
-    if (books && books.length) {
+    const { data: books } = await supabase
+      .from('books')
+      .select('id')
+      .eq('author_id', writerId);
+    if (books) {
       for (const book of books) {
         await supabase.rpc('decrement_subscriber_count', { book_id: book.id });
       }
