@@ -9,17 +9,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { BookOpen, Eye, EyeOff, Loader2, User, PenTool } from 'lucide-react';
 
-const SECURITY_QUESTIONS = [
-  'What was the name of your first pet?',
-  'What city were you born in?',
-  'What is your mother\'s maiden name?',
-  'What was your first car?',
-  'What is your favorite book?',
-  'What was the name of your elementary school?',
-];
-
 export function RegisterPage() {
-  useNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
   const { register } = useAuth();
   const defaultRole = location.state?.role || 'reader';
@@ -30,8 +21,6 @@ export function RegisterPage() {
     password: '',
     confirmPassword: '',
     role: defaultRole,
-    securityQuestion: SECURITY_QUESTIONS[0],
-    securityAnswer: '',
     bio: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -57,30 +46,30 @@ export function RegisterPage() {
       return;
     }
 
-    if (!formData.securityAnswer.trim()) {
-      setError('Please provide an answer to your security question');
+    if (!formData.username.trim()) {
+      setError('Username is required');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const success = await register({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role as 'writer' | 'reader',
-        securityQuestion: formData.securityQuestion,
-        securityAnswer: formData.securityAnswer,
-        bio: formData.bio,
-      });
+      const { error } = await register(
+        formData.email,
+        formData.password,
+        formData.username,
+        formData.role as 'writer' | 'reader',
+        formData.bio
+      );
 
-      if (success) {
-        window.location.href = '/';
+      if (!error) {
+        // Registration successful (email confirmation may be required)
+        // Optionally redirect or show success message
+        navigate('/login');
       } else {
-        setError('Email already exists');
+        setError(error.message || 'Registration failed');
       }
-    } catch {
+    } catch (err) {
       setError('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
@@ -218,33 +207,6 @@ export function RegisterPage() {
                     className="h-11"
                   />
                 </div>
-              </div>
-
-              {/* Security Question */}
-              <div className="space-y-2">
-                <Label htmlFor="securityQuestion">Security Question</Label>
-                <select
-                  id="securityQuestion"
-                  value={formData.securityQuestion}
-                  onChange={(e) => handleChange('securityQuestion', e.target.value)}
-                  className="w-full h-11 px-3 rounded-md border border-input bg-background text-sm"
-                >
-                  {SECURITY_QUESTIONS.map((q, i) => (
-                    <option key={i} value={q}>{q}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="securityAnswer">Security Answer</Label>
-                <Input
-                  id="securityAnswer"
-                  placeholder="Your answer (used for password recovery)"
-                  value={formData.securityAnswer}
-                  onChange={(e) => handleChange('securityAnswer', e.target.value)}
-                  required
-                  className="h-11"
-                />
               </div>
 
               <div className="space-y-2">
