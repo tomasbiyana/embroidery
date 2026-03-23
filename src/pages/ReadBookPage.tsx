@@ -17,13 +17,12 @@ export function ReadBookPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [book, setBook] = useState<Book | null>(null);
-  const [allBooks, setAllBooks] = useState<Book[]>([]);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [currentChapter, setCurrentChapter] = useState<Chapter | null>(null);
   const [author, setAuthor] = useState<User | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [showSubscribeDialog, setShowSubscribeDialog] = useState(false);
-  const [loading, setLoading] = useState(true);
+  
 
   useEffect(() => {
     if (bookId) {

@@ -19,7 +19,7 @@ export function WritePage() {
   const { bookId, chapterId } = useParams<{ bookId: string; chapterId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth(); // not used but kept for consistency
+  
   
   const [book, setBook] = useState<Book | null>(null);
   const [chapter, setChapter] = useState<Partial<Chapter>>({

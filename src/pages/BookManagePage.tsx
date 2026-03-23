@@ -18,7 +18,7 @@ import {
 export function BookManagePage() {
   const { bookId } = useParams<{ bookId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+ 
   const [book, setBook] = useState<Book | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
