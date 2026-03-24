@@ -52,37 +52,39 @@ export function WriterDashboard() {
     setLoading(false);
   };
 
-  const handleCreateBook = async () => {
-    if (!newBook.title.trim() || !user) {
-      toast.error('Please enter a title');
-      return;
-    }
+const handleCreateBook = async () => {
+  if (!newBook.title.trim() || !user) {
+    toast.error('Please enter a title');
+    return;
+  }
 
-    const book: Book = {
-      id: crypto.randomUUID(),
-      title: newBook.title,
-      authorId: user.id,
-      authorName: user.username,
-      description: newBook.description,
-      type: newBook.type,
-      genre: newBook.genre,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isPublished: false,
-      subscriberCount: 0,
-    };
-
-    try {
-      await supabaseDb.addBook(book);
-      toast.success('Book created!');
-      setNewBook({ title: '', description: '', type: 'novel', genre: 'Fantasy' });
-      setIsCreateDialogOpen(false);
-      await loadBooks();
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to create book');
-    }
+  console.log('Creating book with user:', user); // 👈 log user object
+  const book: Book = {
+    id: crypto.randomUUID(),
+    title: newBook.title,
+    authorId: user.id,
+    authorName: user.username,
+    description: newBook.description,
+    type: newBook.type,
+    genre: newBook.genre,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    isPublished: false,
+    subscriberCount: 0,
   };
+  console.log('Book to insert:', book); // 👈 log book data
+
+  try {
+    await supabaseDb.addBook(book);
+    toast.success('Book created!');
+    setNewBook({ title: '', description: '', type: 'novel', genre: 'Fantasy' });
+    setIsCreateDialogOpen(false);
+    await loadBooks();
+  } catch (error) {
+    console.error('Supabase error:', error); // 👈 log the full error
+    toast.error('Failed to create book');
+  }
+};
 
   const handleDeleteBook = async () => {
     if (selectedBook) {
