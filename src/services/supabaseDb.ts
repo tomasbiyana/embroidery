@@ -71,10 +71,18 @@ export const supabaseDb = {
   },
 
   async getBooksByAuthor(authorId: string): Promise<Book[]> {
-    const { data, error } = await supabase.from('books').select('*').eq('author_id', authorId);
-    if (error) throw error;
+    console.log('Fetching books for author:', authorId);
+    const { data, error } = await supabase
+      .from('books')
+      .select('*')
+      .eq('author_id', authorId);
+    if (error) {
+      console.error('Supabase error in getBooksByAuthor:', error);
+      throw error;
+    }
+    console.log('Books data received:', data);
     return data.map(mapBook);
-  },
+  }, // <-- added missing comma
 
   async getPublishedBooks(): Promise<Book[]> {
     const { data, error } = await supabase.from('books').select('*').eq('is_published', true);
@@ -116,7 +124,7 @@ export const supabaseDb = {
   },
 
   async deleteBook(id: string) {
-    // Chapters will cascade delete due to foreign key, but we can delete them explicitly if needed
+    // Chapters will cascade delete due to foreign key
     const { error } = await supabase.from('books').delete().eq('id', id);
     if (error) throw error;
   },

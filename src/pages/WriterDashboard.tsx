@@ -37,24 +37,27 @@ export function WriterDashboard() {
     genre: 'Fantasy',
   });
 
-  useEffect(() => {
-    if (user) {
-      loadBooks();
-    }
-  }, [user]);
+useEffect(() => {
+  if (user) {
+    loadBooks();
+  } else {
+    // If user is null (not logged in), still stop loading
+    setLoading(false);
+  }
+}, [user]);
 
 const loadBooks = async () => {
   setLoading(true);
   try {
     if (user) {
-      console.log('Fetching books for user:', user.id);
       const userBooks = await supabaseDb.getBooksByAuthor(user.id);
-      console.log('Books fetched:', userBooks);
       setBooks(userBooks);
+    } else {
+      console.log('No user logged in');
     }
   } catch (error) {
     console.error('Error loading books:', error);
-    toast.error('Failed to load books');
+    toast.error('Failed to load your books. Please refresh the page.');
   } finally {
     setLoading(false);
   }
