@@ -43,14 +43,22 @@ export function WriterDashboard() {
     }
   }, [user]);
 
-  const loadBooks = async () => {
-    setLoading(true);
+const loadBooks = async () => {
+  setLoading(true);
+  try {
     if (user) {
+      console.log('Fetching books for user:', user.id);
       const userBooks = await supabaseDb.getBooksByAuthor(user.id);
+      console.log('Books fetched:', userBooks);
       setBooks(userBooks);
     }
+  } catch (error) {
+    console.error('Error loading books:', error);
+    toast.error('Failed to load books');
+  } finally {
     setLoading(false);
-  };
+  }
+};
 
 const handleCreateBook = async () => {
   if (!newBook.title.trim() || !user) {

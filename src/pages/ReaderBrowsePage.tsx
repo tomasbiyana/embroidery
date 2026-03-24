@@ -27,25 +27,28 @@ export function ReaderBrowsePage() {
     loadData();
   }, [user]);
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const allBooks = await supabaseDb.getPublishedBooks();
-      setBooks(allBooks);
-      const allUsers = await supabaseDb.getUsers();
-      const writerUsers = allUsers.filter(u => u.role === 'writer');
-      setWriters(writerUsers);
-      if (user) {
-        const userSubs = await supabaseDb.getSubscriptionsByReader(user.id);
-        setSubscriptions(userSubs.map(s => s.writerId));
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to load data');
-    } finally {
-      setLoading(false);
+const loadData = async () => {
+  setLoading(true);
+  try {
+    console.log('Loading data...');
+    const allBooks = await supabaseDb.getPublishedBooks();
+    console.log('Books:', allBooks);
+    setBooks(allBooks);
+    const allUsers = await supabaseDb.getUsers();
+    console.log('Users:', allUsers);
+    const writerUsers = allUsers.filter(u => u.role === 'writer');
+    setWriters(writerUsers);
+    if (user) {
+      const userSubs = await supabaseDb.getSubscriptionsByReader(user.id);
+      setSubscriptions(userSubs.map(s => s.writerId));
     }
-  };
+  } catch (error) {
+    console.error('Error loading data:', error);
+    toast.error('Failed to load data');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSubscribe = async (writerId: string) => {
     if (!user) {
