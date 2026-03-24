@@ -68,33 +68,23 @@ useEffect(() => {
     return { error: null };
   };
 
-  const register = async (email: string, password: string, username: string, role: 'reader' | 'writer', bio?: string) => {
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { username, role },
-      },
-    });
-    if (authError) {
-      toast.error(authError.message);
-      return { error: authError };
-    }
+const register = async (email: string, password: string, username: string, role: 'reader' | 'writer', bio?: string) => {
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { username, role, bio },   // Include bio in metadata
+    },
+  });
+  if (authError) {
+    toast.error(authError.message);
+    return { error: authError };
+  }
 
-    const { error: profileError } = await supabase.from('users').insert({
-      id: authData.user!.id,
-      username,
-      role,
-      bio,
-    });
-    if (profileError) {
-      toast.error(profileError.message);
-      return { error: profileError };
-    }
-
-    toast.success('Account created! Please check your email to confirm.');
-    return { error: null };
-  };
+  // Profile is created automatically by the trigger
+  toast.success('Account created! Please check your email to confirm.');
+  return { error: null };
+};
 
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
