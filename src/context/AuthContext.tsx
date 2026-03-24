@@ -69,11 +69,11 @@ useEffect(() => {
   };
 
 const register = async (email: string, password: string, username: string, role: 'reader' | 'writer', bio?: string) => {
-  const { data: authData, error: authError } = await supabase.auth.signUp({
+  const { error: authError } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { username, role, bio },   // Include bio in metadata
+      data: { username, role, bio },   // Include all needed fields
     },
   });
   if (authError) {
