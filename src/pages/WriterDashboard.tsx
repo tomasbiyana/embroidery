@@ -37,65 +37,67 @@ export function WriterDashboard() {
     genre: 'Fantasy',
   });
 
-useEffect(() => {
-  if (user) {
-    loadBooks();
-  } else {
-    // If user is null (not logged in), still stop loading
-    setLoading(false);
-  }
-}, [user]);
-
-const loadBooks = async () => {
-  setLoading(true);
-  try {
+  useEffect(() => {
     if (user) {
-      const userBooks = await supabaseDb.getBooksByAuthor(user.id);
-      setBooks(userBooks);
+      loadBooks();
     } else {
-      console.log('No user logged in');
+      // If no user (shouldn't happen on dashboard), stop loading
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error loading books:', error);
-    toast.error('Failed to load your books. Please refresh the page.');
-  } finally {
-    setLoading(false);
-  }
-};
+  }, [user]);
 
-const handleCreateBook = async () => {
-  if (!newBook.title.trim() || !user) {
-    toast.error('Please enter a title');
-    return;
-  }
-
-  console.log('Creating book with user:', user); // 👈 log user object
-  const book: Book = {
-    id: crypto.randomUUID(),
-    title: newBook.title,
-    authorId: user.id,
-    authorName: user.username,
-    description: newBook.description,
-    type: newBook.type,
-    genre: newBook.genre,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    isPublished: false,
-    subscriberCount: 0,
+  const loadBooks = async () => {
+    console.log('loadBooks called, setting loading true');
+    setLoading(true);
+    try {
+      if (user) {
+        console.log('Fetching books for user ID:', user.id);
+        const userBooks = await supabaseDb.getBooksByAuthor(user.id);
+        console.log('Books fetched:', userBooks);
+        setBooks(userBooks);
+      } else {
+        console.log('No user logged in');
+      }
+    } catch (error) {
+      console.error('Error loading books:', error);
+      toast.error('Failed to load your books. Please refresh the page.');
+    } finally {
+      console.log('loadBooks finally, setting loading false');
+      setLoading(false);
+    }
   };
-  console.log('Book to insert:', book); // 👈 log book data
 
-  try {
-    await supabaseDb.addBook(book);
-    toast.success('Book created!');
-    setNewBook({ title: '', description: '', type: 'novel', genre: 'Fantasy' });
-    setIsCreateDialogOpen(false);
-    await loadBooks();
-  } catch (error) {
-    console.error('Supabase error:', error); // 👈 log the full error
-    toast.error('Failed to create book');
-  }
-};
+  const handleCreateBook = async () => {
+    if (!newBook.title.trim() || !user) {
+      toast.error('Please enter a title');
+      return;
+    }
+
+    const book: Book = {
+      id: crypto.randomUUID(),
+      title: newBook.title,
+      authorId: user.id,
+      authorName: user.username,
+      description: newBook.description,
+      type: newBook.type,
+      genre: newBook.genre,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isPublished: false,
+      subscriberCount: 0,
+    };
+
+    try {
+      await supabaseDb.addBook(book);
+      toast.success('Book created!');
+      setNewBook({ title: '', description: '', type: 'novel', genre: 'Fantasy' });
+      setIsCreateDialogOpen(false);
+      await loadBooks(); // refresh the list
+    } catch (error) {
+      console.error('Create book error:', error);
+      toast.error('Failed to create book');
+    }
+  };
 
   const handleDeleteBook = async () => {
     if (selectedBook) {
