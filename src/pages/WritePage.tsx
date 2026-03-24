@@ -207,8 +207,7 @@ export function WritePage() {
               <div className="flex items-center gap-2">
                 <Switch
                   checked={chapter.isPublished}
-                  onCheckedChange={(checked) => setChapter(prev => ({ ...prev, isPublished: checked }))}
-                />
+onCheckedChange={(checked: boolean) => setChapter(prev => ({ ...prev, isPublished: checked }))}                />
                 <span className="text-sm text-gray-600">
                   {chapter.isPublished ? 'Published' : 'Draft'}
                 </span>

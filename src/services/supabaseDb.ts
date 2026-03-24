@@ -46,10 +46,10 @@ const mapUser = (user: any): User => ({
 
 export const supabaseDb = {
   // Users
-  async getUsers(): Promise<User[]> {
+async getUsers(): Promise<User[]> {
     const { data, error } = await supabase.from('users').select('*');
     if (error) throw error;
-    return data.map(mapUser);
+    return (data || []).map(mapUser); 
   },
 
   async addUser(user: any) {
@@ -58,10 +58,10 @@ export const supabaseDb = {
   },
 
   // Books
-  async getBooks(): Promise<Book[]> {
+async getBooks(): Promise<Book[]> {
     const { data, error } = await supabase.from('books').select('*');
     if (error) throw error;
-    return data.map(mapBook);
+    return (data || []).map(mapBook);
   },
 
   async getBookById(id: string): Promise<Book | null> {
@@ -70,24 +70,19 @@ export const supabaseDb = {
     return mapBook(data);
   },
 
-  async getBooksByAuthor(authorId: string): Promise<Book[]> {
-    console.log('Fetching books for author:', authorId);
+async getBooksByAuthor(authorId: string): Promise<Book[]> {
     const { data, error } = await supabase
       .from('books')
       .select('*')
       .eq('author_id', authorId);
-    if (error) {
-      console.error('Supabase error in getBooksByAuthor:', error);
-      throw error;
-    }
-    console.log('Books data received:', data);
-    return data.map(mapBook);
-  }, // <-- added missing comma
+    if (error) throw error;
+    return (data || []).map(mapBook);
+  },
 
   async getPublishedBooks(): Promise<Book[]> {
     const { data, error } = await supabase.from('books').select('*').eq('is_published', true);
     if (error) throw error;
-    return data.map(mapBook);
+    return (data || []).map(mapBook);
   },
 
   async addBook(book: Book) {
@@ -133,18 +128,19 @@ export const supabaseDb = {
   async getChapters(): Promise<Chapter[]> {
     const { data, error } = await supabase.from('chapters').select('*');
     if (error) throw error;
-    return data.map(mapChapter);
+    return (data || []).map(mapChapter);
   },
 
-  async getChaptersByBook(bookId: string): Promise<Chapter[]> {
+async getChaptersByBook(bookId: string): Promise<Chapter[]> {
     const { data, error } = await supabase
       .from('chapters')
       .select('*')
       .eq('book_id', bookId)
       .order('chapter_number', { ascending: true });
     if (error) throw error;
-    return data.map(mapChapter);
+    return (data || []).map(mapChapter);
   },
+
 
   async getChapterById(id: string): Promise<Chapter | null> {
     const { data, error } = await supabase.from('chapters').select('*').eq('id', id).single();
@@ -190,7 +186,7 @@ export const supabaseDb = {
   async getSubscriptions(): Promise<Subscription[]> {
     const { data, error } = await supabase.from('subscriptions').select('*');
     if (error) throw error;
-    return data.map(mapSubscription);
+    return (data || []).map(mapSubscription);
   },
 
   async getSubscriptionsByReader(readerId: string): Promise<Subscription[]> {
@@ -199,7 +195,7 @@ export const supabaseDb = {
       .select('*')
       .eq('reader_id', readerId);
     if (error) throw error;
-    return data.map(mapSubscription);
+    return (data || []).map(mapSubscription);
   },
 
   async getSubscriptionsByWriter(writerId: string): Promise<Subscription[]> {
@@ -208,7 +204,7 @@ export const supabaseDb = {
       .select('*')
       .eq('writer_id', writerId);
     if (error) throw error;
-    return data.map(mapSubscription);
+    return (data || []).map(mapSubscription);
   },
 
   async isSubscribed(readerId: string, writerId: string): Promise<boolean> {
